@@ -147,4 +147,4 @@ def get_logs(agent_id):
 if __name__ == '__main__':
     init_db()
     print("[+] C2 Server started at http://0.0.0.0:8080")
-    socketio.run(app, host='0.0.0.0', port=8080, debug=True)
+    socketio.run(app, host='0.0.0.0', port=8080, debug=True, allow_unsafe_werkzeug=True)
